@@ -159,6 +159,9 @@ body:not(.po-hero) .tel-top{opacity:0;pointer-events:none;transform:translateY(-
   background:#F1EEDF url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 200' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='%231E4A2C' stroke-opacity='.13' stroke-width='1.2'%3E%3Cpath d='M-20 30L180 -10M-20 70L260 10M-20 110L340 30M-20 150L420 50M40 190L420 90M140 210L420 130'/%3E%3Cpath d='M0 120C90 110 150 140 220 120S340 80 400 96' stroke='%23B98A3E' stroke-opacity='.55' stroke-width='5'/%3E%3C/g%3E%3Ccircle cx='238' cy='114' r='9' fill='%231E4A2C'/%3E%3Ccircle cx='238' cy='114' r='3.5' fill='%23EDB82A'/%3E%3C/svg%3E") center/cover no-repeat}
 .k-mapa p{margin:0;font-size:15px;line-height:1.45;color:var(--muted);background:rgba(255,255,255,.88);padding:10px 12px;border-radius:6px;max-width:30em}
 .k-mapa b{display:block;color:var(--ink)}
+.k-mapa{padding:0;border:1px solid var(--line);background:#F1EEDF;overflow:hidden;min-height:0;aspect-ratio:16/10}
+.k-mapa iframe{display:block;width:100%;height:100%;border:0}
+.k-prowadz{margin-top:14px}
 .k-form{background:var(--bg2);border-radius:10px;padding:32px;display:grid;gap:16px}
 .k-form h3{margin-bottom:2px}
 .f2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
