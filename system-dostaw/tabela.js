@@ -184,7 +184,7 @@
     var a=Math.min(x1,x2),b=Math.max(x1,x2),c=Math.min(y1,y2),d=Math.max(y1,y2),n=0,s=0,k=0;
     for(var y=c;y<=d;y++)for(var x=a;x<=b;x++){var v=grid.options.data[y]&&grid.options.data[y][x];if(v===''||v==null)continue;k++;var q=liczba(v);if(!isNaN(q)&&!/^\d{4}-\d{2}-\d{2}/.test(String(v))){n++;s+=q}}
     if(k<2&&n<2){$('sel').innerHTML='Zaznacz kilka komórek z liczbami, a tu pojawi się ich suma.';return}
-    $('sel').innerHTML='Zaznaczone: <b>'+k+'</b> · Suma: <b>'+fmt(s)+'</b>'+(n?' · Średnia: <b>'+fmt(s/n)+'</b>':'');
+    $('sel').innerHTML='Zaznaczone: <b>'+k+'</b>'+(n?' · Suma: <b>'+fmt(s)+'</b> · Średnia: <b>'+fmt(s/n)+'</b>':'');
   }
 
   function zakladki(){
