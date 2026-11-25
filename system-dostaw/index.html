@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="robots" content="noindex, nofollow">
+<meta name="robots" content="noindex, nofollow" data-podglad>
 <title>System dostaw - Agro-Ros</title>
 <meta name="theme-color" content="#1E4A2C">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsuites@5.0.25/dist/jsuites.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@4.13.4/dist/jspreadsheet.css">
-<link rel="stylesheet" href="tabela.css">
+<link rel="stylesheet" href="tabela.css?v=2">
 <link rel="icon" href="../logo/favicon-klient-64.png" type="image/png">
 </head>
 <body>
@@ -24,15 +24,13 @@
     <h1>System dostaw</h1>
     <p class="log-sub">Dziennik skupu i sprzedaży dla pracowników Agro-Ros. Dostęp tylko po zalogowaniu.</p>
     <label>Konto
-      <select id="logUser">
-        <option>Konto 1</option><option>Konto 2</option><option>Konto 3</option><option>Konto 4</option><option>Konto 5</option>
-      </select>
+      <select id="logUser"></select>
     </label>
     <label>Hasło
       <input id="logPass" type="password" value="pokaz" autocomplete="off">
     </label>
     <button class="btn btn-g" type="submit">Zaloguj</button>
-    <p class="log-demo">Wersja pokazowa: hasło jest już wpisane, wystarczy kliknąć „Zaloguj”. W gotowym systemie każda z 5 osób ma własny login i hasło.</p>
+    <p class="log-demo">Wersja pokazowa: hasło jest już wpisane, wystarczy kliknąć „Zaloguj”. W gotowym systemie każda z 5 osób ma własny login i hasło, a jej skrót (Jacek, Adam R, Adaśko, Sylwia, Gosia) widać przy każdej zmianie.</p>
   </form>
 </section>
 
@@ -56,14 +54,18 @@
   <section class="sum" id="sum" aria-label="Podsumowanie miesiąca"></section>
 
   <div class="tools" id="tools">
-    <button class="b3" id="btnRow" type="button"><span class="material-icons" aria-hidden="true">add</span>Dodaj wiersz</button>
+    <button class="b3" id="btnRow" type="button"><span class="material-icons" aria-hidden="true">add</span><span id="btnRowTx">Dodaj wiersz</span></button>
     <label class="szuk"><span class="material-icons" aria-hidden="true">search</span><input id="szukaj" type="search" placeholder="Szukaj: zboże, kontrahent, nr FV" aria-label="Szukaj w tabeli"></label>
     <span class="sel" id="sel">Zaznacz komórki, a tu pojawi się ich suma.</span>
   </div>
 
   <div class="grid-wrap" id="gridWrap"><div id="grid"></div></div>
 
-  <p class="hint">Jak w Excelu: kliknij i przeciągnij, aby zaznaczyć komórki; pasek nad tabelą zmienia pogrubienie, podkreślenie, kolor tekstu i tła. Prawy przycisk myszy: wstawianie i usuwanie wierszy i kolumn, kopiuj, wklej. Filtr kolumny: dwuklik w ikonę pod nagłówkiem. Działają też formuły, np. =SUM(F1:F20). Kolumna „Zysk” liczy się sama: ilość załadowana x (cena sprzedaży - cena zakupu - koszt transportu).</p>
+  <section class="poz" id="poz" aria-live="polite" hidden></section>
+
+  <p class="hint" id="hintU" hidden>Zakładka „Umowy” liczy się sama. Umowę wpisuje się raz: numer, rodzaj (zakup albo sprzedaż), kontrahent, towar i ilość w tonach. Potem w zakładce miesiąca wybiera się ją z listy w kolumnie „Umowa zakupu” (obok „Od kogo kupione”) albo „Umowa sprzedaży” (obok „Komu sprzedane”). Realizacja zbiera pozycje ze wszystkich miesięcy: zakup liczy się z ilości załadowanej, sprzedaż z ilości rozładowanej. Przekroczenie ilości z umowy jest oznaczone na czerwono. Zmiana numeru umowy poprawia go też we wszystkich przypisanych pozycjach.</p>
+
+  <p class="hint" id="hintM">Jak w Excelu: kliknij i przeciągnij, aby zaznaczyć komórki; pasek nad tabelą zmienia pogrubienie, podkreślenie, kolor tekstu i tła. Prawy przycisk myszy: wstawianie i usuwanie wierszy i kolumn, kopiuj, wklej. Filtr kolumny: dwuklik w ikonę pod nagłówkiem. Działają też formuły, np. =SUM(F1:F20). Kolumna „Zysk” liczy się sama: ilość załadowana x (cena sprzedaży - cena zakupu - koszt transportu). W kolumnach „Umowa zakupu” i „Umowa sprzedaży” wybiera się umowę z zakładki „Umowy”, a „Kto zmienił” wpisuje się sama skrótem zalogowanej osoby.</p>
 </div>
 
 <!-- historia -->
@@ -75,6 +77,6 @@
 <script src="https://cdn.jsdelivr.net/npm/jsuites@5.0.25/dist/jsuites.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@4.13.4/dist/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
-<script src="tabela.js"></script>
+<script src="tabela.js?v=2"></script>
 </body>
 </html>
