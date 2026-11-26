@@ -1,6 +1,6 @@
 (function(){
   'use strict';
-  var KEY='agroros-dostawy-v2';
+  var KEY='agroros-dostawy-v3', KEY_V2='agroros-dostawy-v2';
 
   // konta pracowników: imię i nazwisko + skrót widoczny w tabeli
   var KONTA=[
@@ -27,6 +27,7 @@
     num({name:'ilr',title:'Ilość rozładowana (t)',width:96}),
     num({name:'cz',title:'Cena zakupu netto (zł/t)',width:100}),
     num({name:'cs',title:'Cena sprzedaży (zł/t)',width:100}),
+    num({name:'pot',title:'Potrącenia / dopłaty (zł/t)',width:112}),
     num({name:'tr',title:'Koszt transportu (zł/t)',width:100}),
     {name:'przew',title:'Przewoźnik',type:'text',width:120},
     {name:'kier',title:'Kierowca, auto, telefon',type:'text',width:220},
@@ -47,6 +48,7 @@
     {name:'typ',title:'Rodzaj',type:'dropdown',source:['Zakup','Sprzedaż'],width:108},
     {name:'kontr',title:'Kontrahent',type:'text',width:240},
     {name:'towar',title:'Towar',type:'dropdown',source:GATUNKI,autocomplete:true,width:130},
+    {name:'redcert',title:'REDcert',type:'dropdown',source:['tak','nie'],width:84},
     num({name:'ilosc',title:'Ilość w umowie (t)',width:100}),
     num({name:'cena',title:'Cena (zł/t)',width:90}),
     {name:'do',title:'Termin realizacji',type:'calendar',width:104,options:KAL},
@@ -57,47 +59,79 @@
     {name:'uwagi',title:'Uwagi',type:'text',width:200},
     {name:'kto',title:'Kto zmienił',type:'text',width:84,readOnly:true}
   ];
-  function u(nr,typ,kontr,towar,ilosc,cena,termin,uwagi,kto){return [nr,typ,kontr,towar,ilosc,cena,termin,'','','','',uwagi||'',kto||'']}
+  function u(nr,typ,kontr,towar,red,ilosc,cena,termin,uwagi,kto){return [nr,typ,kontr,towar,red,ilosc,cena,termin,'','','','',uwagi||'',kto||'']}
   var UMOWY=[
-    u('Z/01/2026','Zakup','Gosp. rolne Nowak, Pokrzywnica','Pszenica',75,780,'2026-12-31','','Jacek'),
-    u('Z/02/2026','Zakup','Gosp. rolne Wiśniewski, Somianka','Kukurydza sucha',80,690,'2026-12-15','','Adam R'),
-    u('Z/03/2026','Zakup','Gosp. rolne Wiśniewski, Somianka','Rzepak',25,1870,'2026-10-31','','Adam R'),
-    u('Z/04/2026','Zakup','Gosp. rolne Kowalczyk','Rzepak',50,1890,'2026-12-31','','Adaśko'),
-    u('S/01/2026','Sprzedaż','Wytwórnia Pasz (przykład)','Kukurydza sucha',150,755,'2026-12-31','dostawy co tydzień','Jacek'),
-    u('S/02/2026','Sprzedaż','Młyn Zbożowy (przykład)','Pszenica',50,845,'2026-11-30','','Sylwia'),
-    u('S/03/2026','Sprzedaż','Tłocznia Oleju (przykład)','Rzepak',100,1975,'2027-01-31','','Gosia'),
-    u('S/04/2026','Sprzedaż','Suszarnia (przykład)','Kukurydza mokra',55.9,575,'2026-11-30','','Gosia')
+    u('Z/01/2026','Zakup','Gosp. rolne Nowak, Pokrzywnica','Pszenica','nie',75,780,'2026-12-31','','Jacek'),
+    u('Z/02/2026','Zakup','Gosp. rolne Wiśniewski, Somianka','Kukurydza sucha','nie',80,690,'2026-12-15','','Adam R'),
+    u('Z/03/2026','Zakup','Gosp. rolne Wiśniewski, Somianka','Rzepak','tak',25,1870,'2026-10-31','','Adam R'),
+    u('Z/04/2026','Zakup','Gosp. rolne Kowalczyk','Rzepak','tak',50,1890,'2026-12-31','','Adaśko'),
+    u('S/01/2026','Sprzedaż','Wytwórnia Pasz (przykład)','Kukurydza sucha','nie',150,755,'2026-12-31','dostawy co tydzień','Jacek'),
+    u('S/02/2026','Sprzedaż','Młyn Zbożowy (przykład)','Pszenica','nie',50,845,'2026-11-30','','Sylwia'),
+    u('S/03/2026','Sprzedaż','Tłocznia Oleju (przykład)','Rzepak','tak',100,1975,'2027-01-31','','Gosia'),
+    u('S/04/2026','Sprzedaż','Suszarnia (przykład)','Kukurydza mokra','nie',55.9,575,'2026-11-30','','Gosia')
   ];
 
   // przykładowe wpisy (fikcyjne)
-  function w(z,r,rodzaj,od,umz,wet,ilz,ilr,cz,cs,tr,przew,kier,komu,ums,fvz,fv,wplyw,cert,uwagi,kto){return [z,r,rodzaj,od,umz||'',wet,ilz,ilr,cz,cs,tr,przew,kier,komu,ums||'',fvz,fv,wplyw,'',cert||'',uwagi||'',kto||'']}
+  function w(z,r,rodzaj,od,umz,wet,ilz,ilr,cz,cs,pot,tr,przew,kier,komu,ums,fvz,fv,wplyw,cert,uwagi,kto){return [z,r,rodzaj,od,umz||'',wet,ilz,ilr,cz,cs,pot,tr,przew,kier,komu,ums||'',fvz,fv,wplyw,'',cert||'',uwagi||'',kto||'']}
   var LISTOPAD=[
-    w('2026-11-03','2026-11-03','Pszenica','Gosp. rolne Nowak, Pokrzywnica','Z/01/2026','PL1401011p',25.96,25.96,780,845,30,'Agro-Ros','Kierowca 1, WPU 1234A, 600 100 200','Młyn Zbożowy (przykład)','S/02/2026','VAT 12/11/2026','FV 101/11/2026','2026-11-17','tak','','Gosia'),
-    w('2026-11-03','2026-11-04','Kukurydza sucha','Gosp. rolne Wiśniewski, Somianka','Z/02/2026','PL1435022p',26.40,26.36,690,742,35,'Agro-Ros','Kierowca 2, WWY 5521K, 600 100 201','Wytwórnia Pasz (przykład)','S/01/2026','RR 3/11/2026','FV 102/11/2026','','','','Adam R'),
-    w('2026-11-05','2026-11-05','Rzepak','Gosp. rolne Kowalczyk','Z/04/2026','PL1430117p',24.10,24.06,1890,1975,40,'Trans-Bis (przykład)','Kierowca 3, WOR 7788C, 600 100 202','Tłocznia Oleju (przykład)','S/03/2026','VAT 7/11/2026','FV 103/11/2026','2026-11-19','tak','wilgotność 7,2%','Sylwia'),
-    w('2026-11-06','2026-11-06','Kukurydza mokra','Gosp. rolne Zieliński','','PL1435140p',27.80,27.80,520,575,30,'Agro-Ros','Kierowca 1, WPU 1234A, 600 100 200','Suszarnia (przykład)','S/04/2026','RR 4/11/2026','FV 104/11/2026','','','cena bazowa przy wilg. 30%','Gosia'),
-    w('2026-11-09','2026-11-10','Jęczmień','Plac Stare Płudy','','',26.26,26.20,700,770,55,'Trans-Bis (przykład)','Kierowca 4, WMA 3302E, 600 100 203','Słodownia (przykład)','','','FV 105/11/2026','2026-11-24','','','Adaśko'),
-    w('2026-11-10','2026-11-10','Owies','Gosp. rolne Lewandowski','','PL1463019p',22.24,22.24,560,610,25,'Agro-Ros','Kierowca 2, WWY 5521K, 600 100 201','Zakład Zbożowy (przykład)','','RR 5/11/2026','FV 106/11/2026','','','','Adaśko'),
-    w('2026-11-12','2026-11-13','Pszenica GMP','Gosp. rolne Dąbrowski','','PL1206206p',25.88,25.88,760,790,45,'Przewoźnik zewn. (przykład)','Kierowca 5, WGM 1524L, 600 100 204','Wytwórnia Pasz (przykład)','','VAT 9/11/2026','FV 107/11/2026','','','reklamacja: zanieczyszczenia','Jacek'),
-    w('2026-11-16','2026-11-16','Śruta sojowa','Hurtownia Pasz (przykład)','','',24.00,24.00,1650,1720,0,'ich','odbiór własny klienta','Gosp. rolne Mazur','','FS 2/11/2026','FV 108/11/2026','2026-11-20','','','Sylwia'),
-    w('2026-11-18','2026-11-18','Pszenżyto','Plac Stare Płudy','','',28.52,28.50,690,735,30,'Agro-Ros','Kierowca 1, WPU 1234A, 600 100 200','Mieszalnia Pasz (przykład)','','','FV 109/11/2026','','','','Gosia'),
-    w('2026-11-19','2026-11-20','Kukurydza sucha','Gosp. rolne Wójcik','','PL1435022p',26.02,25.96,700,755,35,'Trans-Bis (przykład)','Kierowca 3, WOR 7788C, 600 100 202','Wytwórnia Pasz (przykład)','S/01/2026','RR 8/11/2026','FV 110/11/2026','','','','Adam R')
+    w('2026-11-03','2026-11-03','Pszenica','Gosp. rolne Nowak, Pokrzywnica','Z/01/2026','PL1401011p',25.96,25.96,780,845,'',30,'Agro-Ros','Kierowca 1, WPU 1234A, 600 100 200','Młyn Zbożowy (przykład)','S/02/2026','VAT 12/11/2026','FV 101/11/2026','2026-11-17','tak','','Gosia'),
+    w('2026-11-03','2026-11-04','Kukurydza sucha','Gosp. rolne Wiśniewski, Somianka','Z/02/2026','PL1435022p',26.40,26.36,690,742,'',35,'Agro-Ros','Kierowca 2, WWY 5521K, 600 100 201','Wytwórnia Pasz (przykład)','S/01/2026','RR 3/11/2026','FV 102/11/2026','','','','Adam R'),
+    w('2026-11-05','2026-11-05','Rzepak','Gosp. rolne Kowalczyk','Z/04/2026','PL1430117p',24.10,24.06,1890,1975,8,40,'Trans-Bis (przykład)','Kierowca 3, WOR 7788C, 600 100 202','Tłocznia Oleju (przykład)','S/03/2026','VAT 7/11/2026','FV 103/11/2026','2026-11-19','tak','wilgotność 7,2%','Sylwia'),
+    w('2026-11-06','2026-11-06','Kukurydza mokra','Gosp. rolne Zieliński','','PL1435140p',27.80,27.80,520,575,'',30,'Agro-Ros','Kierowca 1, WPU 1234A, 600 100 200','Suszarnia (przykład)','S/04/2026','RR 4/11/2026','FV 104/11/2026','','','cena bazowa przy wilg. 30%','Gosia'),
+    w('2026-11-09','2026-11-10','Jęczmień','Plac Stare Płudy','','',26.26,26.20,700,770,'',55,'Trans-Bis (przykład)','Kierowca 4, WMA 3302E, 600 100 203','Słodownia (przykład)','','','FV 105/11/2026','2026-11-24','','','Adaśko'),
+    w('2026-11-10','2026-11-10','Owies','Gosp. rolne Lewandowski','','PL1463019p',22.24,22.24,560,610,'',25,'Agro-Ros','Kierowca 2, WWY 5521K, 600 100 201','Zakład Zbożowy (przykład)','','RR 5/11/2026','FV 106/11/2026','','','','Adaśko'),
+    w('2026-11-12','2026-11-13','Pszenica GMP','Gosp. rolne Dąbrowski','','PL1206206p',25.88,25.88,760,790,-15,45,'Przewoźnik zewn. (przykład)','Kierowca 5, WGM 1524L, 600 100 204','Wytwórnia Pasz (przykład)','','VAT 9/11/2026','FV 107/11/2026','','','reklamacja: zanieczyszczenia','Jacek'),
+    w('2026-11-16','2026-11-16','Śruta sojowa','Hurtownia Pasz (przykład)','','',24.00,24.00,1650,1720,'',0,'ich','odbiór własny klienta','Gosp. rolne Mazur','','FS 2/11/2026','FV 108/11/2026','2026-11-20','','','Sylwia'),
+    w('2026-11-18','2026-11-18','Pszenżyto','Plac Stare Płudy','','',28.52,28.50,690,735,'',30,'Agro-Ros','Kierowca 1, WPU 1234A, 600 100 200','Mieszalnia Pasz (przykład)','','','FV 109/11/2026','','','','Gosia'),
+    w('2026-11-19','2026-11-20','Kukurydza sucha','Gosp. rolne Wójcik','','PL1435022p',26.02,25.96,700,755,-5,35,'Trans-Bis (przykład)','Kierowca 3, WOR 7788C, 600 100 202','Wytwórnia Pasz (przykład)','S/01/2026','RR 8/11/2026','FV 110/11/2026','','','','Adam R')
   ];
   var PAZDZIERNIK=[
-    w('2026-10-07','2026-10-07','Kukurydza mokra','Gosp. rolne Nowak, Pokrzywnica','','PL1401011p',28.10,28.10,510,560,30,'Agro-Ros','Kierowca 1, WPU 1234A, 600 100 200','Suszarnia (przykład)','S/04/2026','RR 1/10/2026','FV 81/10/2026','2026-10-21','','','Gosia'),
-    w('2026-10-15','2026-10-16','Pszenica','Gosp. rolne Kowalczyk','','PL1430117p',25.40,25.36,770,830,30,'Agro-Ros','Kierowca 2, WWY 5521K, 600 100 201','Młyn Zbożowy (przykład)','S/02/2026','VAT 4/10/2026','FV 82/10/2026','2026-10-30','','','Jacek'),
-    w('2026-10-22','2026-10-22','Rzepak','Gosp. rolne Wiśniewski, Somianka','Z/03/2026','PL1435022p',24.60,24.60,1870,1940,40,'Trans-Bis (przykład)','Kierowca 3, WOR 7788C, 600 100 202','Tłocznia Oleju (przykład)','S/03/2026','VAT 6/10/2026','FV 83/10/2026','2026-11-05','tak','','Adam R')
+    w('2026-10-07','2026-10-07','Kukurydza mokra','Gosp. rolne Nowak, Pokrzywnica','','PL1401011p',28.10,28.10,510,560,'',30,'Agro-Ros','Kierowca 1, WPU 1234A, 600 100 200','Suszarnia (przykład)','S/04/2026','RR 1/10/2026','FV 81/10/2026','2026-10-21','','','Gosia'),
+    w('2026-10-15','2026-10-16','Pszenica','Gosp. rolne Kowalczyk','','PL1430117p',25.40,25.36,770,830,'',30,'Agro-Ros','Kierowca 2, WWY 5521K, 600 100 201','Młyn Zbożowy (przykład)','S/02/2026','VAT 4/10/2026','FV 82/10/2026','2026-10-30','','','Jacek'),
+    w('2026-10-22','2026-10-22','Rzepak','Gosp. rolne Wiśniewski, Somianka','Z/03/2026','PL1435022p',24.60,24.60,1870,1940,'',40,'Trans-Bis (przykład)','Kierowca 3, WOR 7788C, 600 100 202','Tłocznia Oleju (przykład)','S/03/2026','VAT 6/10/2026','FV 83/10/2026','2026-11-05','tak','','Adam R')
   ];
-  var STYL_LISTOPAD={'A5':'background-color:#FBEBC0','B5':'background-color:#FBEBC0','C5':'background-color:#FBEBC0;font-weight:bold','U7':'color:#A8432F;font-weight:bold','C3':'font-weight:bold'};
+  var STYL_LISTOPAD={'A5':'background-color:#FBEBC0','B5':'background-color:#FBEBC0','C5':'background-color:#FBEBC0;font-weight:bold','V7':'color:#A8432F;font-weight:bold','C3':'font-weight:bold'};
 
   function domyslne(){
     return {months:[
       {id:'2026-10',name:'Październik 2026',data:PAZDZIERNIK,style:{}},
       {id:'2026-11',name:'Listopad 2026',data:LISTOPAD,style:STYL_LISTOPAD},
       {id:'2026-12',name:'Grudzień 2026',data:[],style:{}}
-    ],umowy:UMOWY,umowyStyle:{},hist:[],akt:'2026-11'};
+    ],umowy:UMOWY,umowyStyle:{},gatunki:GATUNKI.slice(),hist:[],akt:'2026-11'};
   }
-  function wczytaj(){try{var s=localStorage.getItem(KEY);if(s){var o=JSON.parse(s);if(o&&o.months&&o.months.length){if(!o.umowy)o.umowy=[];return o}}}catch(e){}return domyslne()}
+  // wstawienie pustej kolumny na pozycji p: dane wierszy i formatowanie komórek przesuwają się w prawo
+  function wstawKol(dane,styl,p){
+    (dane||[]).forEach(function(r){if(r.length>=p)r.splice(p,0,'')});
+    var nowy={};
+    Object.keys(styl||{}).forEach(function(k){
+      var xy=jspreadsheet.getIdFromColumnName(k,true);
+      if(xy&&xy[0]>=p)nowy[jspreadsheet.getColumnNameFromId([xy[0]+1,xy[1]])]=styl[k];else nowy[k]=styl[k];
+      // nowa kolumna dostaje wyrównanie z kolumny po lewej (bez kolorów)
+      if(xy&&xy[0]===p-1){var w=String(styl[k]).match(/text-align:\s*\w+;?/);if(w)nowy[jspreadsheet.getColumnNameFromId([p,xy[1]])]=w[0]}
+    });
+    return nowy;
+  }
+  // dane zapisane w poprzedniej wersji: nowa kolumna potrąceń/dopłat w miesiącach i REDcert w umowach
+  function zV2(o){
+    o.months.forEach(function(m){
+      var p;
+      if(m.cols&&m.cols.length){
+        var i=idxW(m.cols,'cs');p=i>-1?i+1:m.cols.length;
+        m.cols.splice(p,0,{name:'pot',title:'Potrącenia / dopłaty (zł/t)',width:112});
+      }else p=10;
+      m.style=wstawKol(m.data,m.style,p);
+    });
+    o.umowyStyle=wstawKol(o.umowy,o.umowyStyle,4);
+    return o;
+  }
+  function wczytaj(){
+    try{
+      var s=localStorage.getItem(KEY),o=s?JSON.parse(s):null;
+      if(!o){var s2=localStorage.getItem(KEY_V2);if(s2){o=JSON.parse(s2);if(o&&o.months&&o.months.length){if(!o.umowy)o.umowy=[];o=zV2(o)}}}
+      if(o&&o.months&&o.months.length){if(!o.umowy)o.umowy=[];if(!o.gatunki||!o.gatunki.length)o.gatunki=GATUNKI.slice();return o}
+    }catch(e){}
+    return domyslne();
+  }
   function zapiszLS(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 
   var S=wczytaj(), grid=null, user='', wTrakcie=false, UM='umowy';
@@ -112,7 +146,8 @@
   function fmt(n,d){d=d===undefined?2:d;return n.toLocaleString('pl-PL',{minimumFractionDigits:d,maximumFractionDigits:d})}
   function r2(n){return Math.round(n*100)/100}
   function pelny(r){return r&&r.some(function(v){return v!==''&&v!==null&&v!==undefined})}
-  function zyskWiersza(r){var f=liczba(r[idx('ilz')]),h=liczba(r[idx('cz')]),i=liczba(r[idx('cs')]),j=liczba(r[idx('tr')]);if(isNaN(f)||isNaN(h)||isNaN(i))return '';if(isNaN(j))j=0;return Math.round(f*(i-h-j)*100)/100}
+  // zysk od wagi rozładunkowej: ilość rozładowana x (cena sprzedaży + potrącenia/dopłaty - cena zakupu - transport)
+  function zyskWiersza(r){var f=liczba(r[idx('ilr')]),h=liczba(r[idx('cz')]),i=liczba(r[idx('cs')]),j=liczba(r[idx('tr')]),p=liczba(r[idx('pot')]);if(isNaN(f)||isNaN(h)||isNaN(i))return '';if(isNaN(j))j=0;if(isNaN(p))p=0;return Math.round(f*(i+p-h-j)*100)/100}
   function data(v){if(!v)return '';var q=String(v).slice(0,10).split('-');return q.length===3?q[2]+'.'+q[1]+'.'+q[0]:v}
   function skrot(){return user}
   function konto(s){for(var i=0;i<KONTA.length;i++)if(KONTA[i].s===s)return KONTA[i];return {n:s,s:s}}
@@ -122,6 +157,42 @@
     var c=UMOWY_KOL,iN=idxW(c,'nr'),iT=idxW(c,'typ'),iK=idxW(c,'kontr'),iW=idxW(c,'towar'),out=[];
     (S.umowy||[]).forEach(function(r){if(r[iN]&&r[iT]===typ){var k=String(r[iK]||'').replace(/^Gosp\. rolne /,'').replace(/\s*\(przykład\)/,'').split(',')[0];out.push({id:r[iN],name:r[iN]+' · '+(k||r[iW]||'')})}});
     return out;
+  }
+
+  // rodzaje zboża i towarów: lista edytowana przez pracowników (przycisk „Rodzaje zboża”)
+  function listaGatunkow(){return (S.gatunki&&S.gatunki.length?S.gatunki:GATUNKI).slice()}
+  function uzyciaGatunku(g){
+    var n=0;
+    S.months.forEach(function(m){var a=idxW(kolumnyBazy(m),'rodzaj');if(a>-1)(m.data||[]).forEach(function(r){if(r[a]===g)n++})});
+    var b=idxW(UMOWY_KOL,'towar');(S.umowy||[]).forEach(function(r){if(r[b]===g)n++});
+    return n;
+  }
+  function kolumnyBazy(m){return m.cols&&m.cols.length?m.cols:KOLUMNY}
+  function odswiezWidok(){if(grid){var id=S.akt;zapisz();jspreadsheet.destroy($('grid'),false);grid=null;pokaz(id)}}
+  function gatunki(){
+    var l=$('gatL');l.innerHTML='';
+    listaGatunkow().forEach(function(g){
+      var li=document.createElement('li'),t=document.createElement('span'),b=document.createElement('button');
+      t.textContent=g;b.type='button';b.className='b4';b.textContent='Usuń';
+      b.onclick=function(){
+        var n=uzyciaGatunku(g);
+        if(n){$('gatInfo').textContent='„'+g+'” jest użyte w '+n+' poz. (dostawy lub umowy), więc zostaje na liście. Najpierw zmień te pozycje.';return}
+        S.gatunki=listaGatunkow().filter(function(x){return x!==g});dziennik('usunięto rodzaj zboża: '+g);zapiszLS();gatunki();odswiezWidok();
+        $('gatInfo').textContent='Usunięto „'+g+'”.';
+      };
+      li.appendChild(t);li.appendChild(b);l.appendChild(li);
+    });
+    var dl=$('gat');if(!dl.open){$('gatInfo').textContent='';if(dl.showModal)dl.showModal();else dl.setAttribute('open','')}
+  }
+  function dodajGatunek(e){
+    e.preventDefault();
+    var v=$('gatNowy').value.replace(/\s+/g,' ').trim();if(!v)return;
+    v=v.charAt(0).toUpperCase()+v.slice(1);
+    var L=listaGatunkow();
+    if(L.some(function(x){return x.toLowerCase()===v.toLowerCase()})){$('gatInfo').textContent='„'+v+'” już jest na liście.';return}
+    L.push(v);S.gatunki=L;dziennik('dodano rodzaj zboża: '+v);zapiszLS();
+    $('gatNowy').value='';gatunki();odswiezWidok();
+    $('gatInfo').textContent='Dodano „'+v+'”. Można go od razu wybrać w kolumnie „Rodzaj zboża” i „Towar”.';
   }
 
   // realizacja umów ze wszystkich miesięcy: zakup z ilości załadowanej, sprzedaż z ilości rozładowanej
@@ -217,7 +288,7 @@
       // zapisane nazwy, szerokości i dodane kolumny
       c=m.cols.map(function(s){var baza=null;for(var i=0;i<KOLUMNY.length;i++)if(KOLUMNY[i].name&&KOLUMNY[i].name===s.name)baza=KOLUMNY[i];var o={};if(baza)for(var p in baza)o[p]=baza[p];else o.type='text';o.title=s.title;o.width=s.width;if(s.name)o.name=s.name;return o});
     }
-    c.forEach(function(k){if(k.name==='umz')k.source=listaUmow('Zakup');if(k.name==='ums')k.source=listaUmow('Sprzedaż')});
+    c.forEach(function(k){if(k.name==='umz')k.source=listaUmow('Zakup');if(k.name==='ums')k.source=listaUmow('Sprzedaż');if(k.name==='rodzaj')k.source=listaGatunkow()});
     return c;
   }
 
@@ -254,7 +325,7 @@
           dziennik('wiersz '+(y+1)+', „'+head+'”: '+(old===''||old==null?'(puste)':old)+' → '+(value===''?'(puste)':value));
           var k=idx('kto');if(k>-1&&nm!=='kto'&&nm!=='zysk'){wTrakcie=true;grid.setValueFromCoords(k,y,skrot(),true);wTrakcie=false}
         }
-        if(['ilz','cz','cs','tr'].indexOf(nm)>-1){
+        if(['ilr','cz','cs','pot','tr'].indexOf(nm)>-1){
           var z=idx('zysk');if(z>-1){var nowy=zyskWiersza(grid.options.data[y]);if(String(grid.options.data[y][z])!==String(nowy)){wTrakcie=true;grid.setValueFromCoords(z,y,nowy,true);wTrakcie=false}}
         }
       },
@@ -317,7 +388,7 @@
   }
 
   function pokazUmowy(){
-    var cols=UMOWY_KOL.map(function(k){var o={};for(var p in k)o[p]=k[p];return o});
+    var cols=UMOWY_KOL.map(function(k){var o={};for(var p in k)o[p]=k[p];if(o.name==='towar')o.source=listaGatunkow();return o});
     var dane=(S.umowy||[]).map(function(r){return r.slice()});
     var cel=Math.max(15,dane.length+6);while(dane.length<cel)dane.push(cols.map(function(){return ''}));
     wTrakcie=true;
@@ -372,7 +443,7 @@
     var nr=y>-1&&grid.options.data[y]?grid.options.data[y][idx('nr')]:'';
     if(!nr){box.innerHTML='<h2>Pozycje umowy</h2><p class="poz-pusto">Kliknij wiersz umowy w tabeli powyżej, aby zobaczyć, z których dostaw i sprzedaży liczy się jej realizacja.</p>';return}
     var r=grid.options.data[y],R=realizacja()[nr],il=liczba(r[idx('ilosc')]);
-    var h='<h2>Pozycje umowy '+esc(nr)+'</h2><p class="poz-op">'+esc(r[idx('typ')]||'')+' · '+esc(r[idx('kontr')]||'')+' · '+esc(r[idx('towar')]||'')+(isNaN(il)?'':' · '+fmt(il)+' t w umowie')+'</p>';
+    var h='<h2>Pozycje umowy '+esc(nr)+'</h2><p class="poz-op">'+esc(r[idx('typ')]||'')+' · '+esc(r[idx('kontr')]||'')+' · '+esc(r[idx('towar')]||'')+(r[idx('redcert')]?' · REDcert: '+esc(r[idx('redcert')]):'')+(isNaN(il)?'':' · '+fmt(il)+' t w umowie')+'</p>';
     if(!R||!R.poz.length){box.innerHTML=h+'<p class="poz-pusto">Do tej umowy nie przypisano jeszcze żadnej pozycji. W zakładce miesiąca wybierz ją w kolumnie „Umowa '+(r[idx('typ')]==='Sprzedaż'?'sprzedaży':'zakupu')+'”.</p>';return}
     h+='<div class="poz-t"><table><thead><tr><th>Miesiąc</th><th>Data</th><th>'+(r[idx('typ')]==='Sprzedaż'?'Komu sprzedane':'Od kogo kupione')+'</th><th>Towar</th><th class="pr">Ilość (t)</th><th></th></tr></thead><tbody>';
     R.poz.forEach(function(p,i){
@@ -466,6 +537,9 @@
   var tq=null;$('szukaj').addEventListener('input',function(){var v=this.value;clearTimeout(tq);tq=setTimeout(function(){if(grid)grid.search(v)},200)});
   $('btnHist').onclick=historia;
   $('histX').onclick=function(){$('hist').close()};
+  $('btnGat').onclick=gatunki;
+  $('gatX').onclick=function(){$('gat').close()};
+  $('gatForm').addEventListener('submit',dodajGatunek);
   $('btnRow').onclick=function(){
     // nowy wiersz za ostatnim wypełnionym
     var d=grid.options.data,ost=-1;for(var y=0;y<d.length;y++)if(pelny(d[y]))ost=y;

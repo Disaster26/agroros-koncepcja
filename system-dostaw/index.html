@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jsuites@5.0.25/dist/jsuites.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@4.13.4/dist/jspreadsheet.css">
-<link rel="stylesheet" href="tabela.css?v=2">
+<link rel="stylesheet" href="tabela.css?v=3">
 <link rel="icon" href="../logo/favicon-klient-64.png" type="image/png">
 </head>
 <body>
@@ -41,6 +41,7 @@
     <h1 class="bar-t">System dostaw</h1>
     <div class="bar-r">
       <span class="who" id="who"></span>
+      <button class="b2" id="btnGat" type="button"><span class="material-icons" aria-hidden="true">grass</span><span class="tx">Rodzaje zboża</span></button>
       <button class="b2" id="btnHist" type="button"><span class="material-icons" aria-hidden="true">history</span><span class="tx">Historia zmian</span></button>
       <button class="b2" id="btnXlsx" type="button"><span class="material-icons" aria-hidden="true">download</span><span class="tx">Eksport do Excela</span></button>
       <button class="b2" id="btnOut" type="button"><span class="material-icons" aria-hidden="true">logout</span><span class="tx">Wyloguj</span></button>
@@ -63,9 +64,9 @@
 
   <section class="poz" id="poz" aria-live="polite" hidden></section>
 
-  <p class="hint" id="hintU" hidden>Zakładka „Umowy” liczy się sama. Umowę wpisuje się raz: numer, rodzaj (zakup albo sprzedaż), kontrahent, towar i ilość w tonach. Potem w zakładce miesiąca wybiera się ją z listy w kolumnie „Umowa zakupu” (obok „Od kogo kupione”) albo „Umowa sprzedaży” (obok „Komu sprzedane”). Realizacja zbiera pozycje ze wszystkich miesięcy: zakup liczy się z ilości załadowanej, sprzedaż z ilości rozładowanej. Przekroczenie ilości z umowy jest oznaczone na czerwono. Zmiana numeru umowy poprawia go też we wszystkich przypisanych pozycjach.</p>
+  <p class="hint" id="hintU" hidden>Zakładka „Umowy” liczy się sama. Umowę wpisuje się raz: numer, rodzaj (zakup albo sprzedaż), kontrahent, towar, REDcert (tak albo nie) i ilość w tonach. Potem w zakładce miesiąca wybiera się ją z listy w kolumnie „Umowa zakupu” (obok „Od kogo kupione”) albo „Umowa sprzedaży” (obok „Komu sprzedane”). Realizacja zbiera pozycje ze wszystkich miesięcy: zakup liczy się z ilości załadowanej, sprzedaż z ilości rozładowanej. Przekroczenie ilości z umowy jest oznaczone na czerwono. Zmiana numeru umowy poprawia go też we wszystkich przypisanych pozycjach.</p>
 
-  <p class="hint" id="hintM">Jak w Excelu: kliknij i przeciągnij, aby zaznaczyć komórki; pasek nad tabelą zmienia pogrubienie, podkreślenie, kolor tekstu i tła. Prawy przycisk myszy: wstawianie i usuwanie wierszy i kolumn, kopiuj, wklej. Filtr kolumny: dwuklik w ikonę pod nagłówkiem. Działają też formuły, np. =SUM(F1:F20). Kolumna „Zysk” liczy się sama: ilość załadowana x (cena sprzedaży - cena zakupu - koszt transportu). W kolumnach „Umowa zakupu” i „Umowa sprzedaży” wybiera się umowę z zakładki „Umowy”, a „Kto zmienił” wpisuje się sama skrótem zalogowanej osoby.</p>
+  <p class="hint" id="hintM">Jak w Excelu: kliknij i przeciągnij, aby zaznaczyć komórki; pasek nad tabelą zmienia pogrubienie, podkreślenie, kolor tekstu i tła. Prawy przycisk myszy: wstawianie i usuwanie wierszy i kolumn, kopiuj, wklej. Filtr kolumny: dwuklik w ikonę pod nagłówkiem. Działają też formuły, np. =SUM(F1:F20). Kolumna „Zysk” liczy się sama od wagi rozładunkowej: ilość rozładowana x (cena sprzedaży + potrącenia/dopłaty - cena zakupu - koszt transportu). W kolumnie „Potrącenia / dopłaty” potrącenie wpisuje się z minusem (np. -15), a dopłatę bez minusa (np. 8). Nowy rodzaj zboża dodaje się przyciskiem „Rodzaje zboża” u góry i od razu jest na liście. W kolumnach „Umowa zakupu” i „Umowa sprzedaży” wybiera się umowę z zakładki „Umowy”, a „Kto zmienił” wpisuje się sama skrótem zalogowanej osoby.</p>
 </div>
 
 <!-- historia -->
@@ -74,9 +75,20 @@
   <ol class="hist-l" id="histL"></ol>
 </dialog>
 
+<!-- rodzaje zboża i towarów -->
+<dialog class="hist gat" id="gat">
+  <div class="hist-h"><h2>Rodzaje zboża</h2><button class="b2" id="gatX" type="button" aria-label="Zamknij"><span class="material-icons" aria-hidden="true">close</span></button></div>
+  <form class="gat-f" id="gatForm" autocomplete="off">
+    <label for="gatNowy">Nowy rodzaj zboża lub towaru</label>
+    <div class="gat-r"><input id="gatNowy" type="text" maxlength="60" placeholder="np. Gryka"><button class="b3" type="submit"><span class="material-icons" aria-hidden="true">add</span>Dodaj</button></div>
+    <p class="gat-i" id="gatInfo" aria-live="polite"></p>
+  </form>
+  <ul class="gat-l" id="gatL"></ul>
+</dialog>
+
 <script src="https://cdn.jsdelivr.net/npm/jsuites@5.0.25/dist/jsuites.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspreadsheet-ce@4.13.4/dist/index.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer></script>
-<script src="tabela.js?v=2"></script>
+<script src="tabela.js?v=3"></script>
 </body>
 </html>
